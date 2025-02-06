@@ -1,11 +1,11 @@
 import DefaultLayout from "@/layouts/default";
 import { RichTextEditor } from "@/components/rte/rte";
 import { Counter } from "@/components/counter/Counter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../components/rte/styles.css";
 import { cn } from "@/utils/cn";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { UserForm } from "@/components/home/userFrom";
 import { DataView } from "@/components/home/data";
 import Cards from "@/components/home/cards";
@@ -23,9 +23,34 @@ export default function IndexPage() {
   if (!user?.email) {
     return <Navigate to="/signin" replace />;
   }
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      const message = "Are you sure you want to leave?";
+      e.returnValue = message;
+      return message;
+    };
+
+    const handleLocationChange = () => {
+      if (!window.confirm("Are you sure you want to leave?")) {
+        window.history.pushState(null, "", location.pathname);
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handleLocationChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handleLocationChange);
+    };
+  }, [location]);
+
   return (
     <DefaultLayout>
-      <div className="flex flex w-full flex-col items-center max-w-[1280px] justify-center gap-32 py-8 md:py-10 overflow-hidden">
+      <div className="flex flex w-full flex-col items-center max-w-[1280px] justify-center gap-32 py-8 md:py-10">
         <div className="w-full flex flex-col gap-4 lg:flex-row  ">
           <div className="w-full flex">
             <Counter count={count} setCount={setCount} />
